@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeStick | Caretaker Dashboard</title>
+
+  <!-- Leaflet map -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQ3B9R8WnR7u9j8rV1cQkW5r5V6R8wQ="
+    crossorigin=""
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SS</div>
+        <div>
+          <h1>SafeStick</h1>
+          <span>Caretaker Panel</span>
+        </div>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
+      </div>
+
+      <div class="sidebar-section-label">MONITORING</div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">⌂</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="person">
+          <span class="nav-icon">♙</span>
+          <span>Person</span>
+        </button>
+        <button class="nav-item" data-page="location">
+          <span class="nav-icon">●</span>
+          <span>Live Location</span>
+        </button>
+        <button class="nav-item" data-page="alerts">
+          <span class="nav-icon">!</span>
+          <span>Alerts</span>
+          <span class="nav-badge" id="alertNavBadge">1</span>
+        </button>
+        <button class="nav-item" data-page="battery">
+          <span class="nav-icon">▮</span>
+          <span>Battery</span>
+        </button>
+        <button class="nav-item" data-page="activity">
+          <span class="nav-icon">▤</span>
+          <span>Activity</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-section-label">ACCOUNT</div>
+
+      <nav class="nav-list">
+        <button class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="account-card">
+        <div class="avatar">B</div>
+        <div class="account-info">
+          <strong>Bhavika</strong>
+          <span>Caretaker</span>
+        </div>
+        <button class="icon-button" title="Account menu">⋮</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
+
+        <div class="breadcrumb">
+          <span>SafeStick</span>
+          <span>/</span>
+          <strong id="pageTitle">Dashboard</strong>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="connection-pill" id="connectionPill">
+            <span class="status-dot online"></span>
+            <span id="connectionText">Stick Online</span>
+          </div>
+          <button class="icon-button notification-button" id="notificationButton" title="Alerts">
+            ♢
+            <span class="notification-dot" id="notificationDot"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">CARETAKER OVERVIEW</p>
+            <h2>Good afternoon, Bhavika</h2>
+            <p class="muted">Here’s the current status of the person and their SafeStick.</p>
+          </div>
+          <div class="last-sync">
+            <span class="status-dot online"></span>
+            Last sync <strong id="lastSync">just now</strong>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="card person-card">
+            <div class="card-header">
+              <div>
+                <span class="card-label">PERSON</span>
+                <h3>Rahul Sharma</h3>
+              </div>
+              <span class="status-chip success" id="personStatusChip">Online</span>
+            </div>
+
+            <div class="person-content">
+              <div class="avatar large">RS</div>
+              <div class="person-meta">
+                <div><span>Stick ID</span><strong>STICK_001</strong></div>
+                <div><span>Last connection</span><strong id="lastConnection">12:04 AM</strong></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card battery-card">
+            <div class="card-header">
+              <div>
+                <span class="card-label">BATTERY</span>
+                <h3 id="batteryValue">76%</h3>
+              </div>
+              <span class="battery-icon">▮</span>
+            </div>
+
+            <div class="battery-meter">
+              <div class="battery-fill" id="batteryFill" style="width: 76%"></div>
+            </div>
+            <div class="card-footer-row">
+              <span id="batteryStatus">Good</span>
+              <span>Threshold: <strong id="thresholdText">20%</strong></span>
+            </div>
+          </article>
+
+          <article class="card location-summary">
+            <div class="card-header">
+              <div>
+                <span class="card-label">LIVE LOCATION</span>
+                <h3>Current position</h3>
+              </div>
+              <span class="map-pin">●</span>
+            </div>
+            <div class="location-mini">
+              <div class="mini-map">
+                <span class="map-crosshair"></span>
+                <span class="map-marker"></span>
+              </div>
+              <div>
+                <strong id="locationText">28.6139° N, 77.2090° E</strong>
+                <span class="muted">Delhi, India</span>
+                <span class="muted">Updated <span id="locationUpdated">just now</span></span>
+              </div>
+            </div>
+            <button class="text-button" data-page-link="location">View live map →</button>
+          </article>
+
+          <article class="card alert-summary">
+            <div class="card-header">
+              <div>
+                <span class="card-label">ACTIVE ALERTS</span>
+                <h3 id="activeAlertCount">1 active alert</h3>
+              </div>
+              <span class="alert-symbol">!</span>
+            </div>
+
+            <div class="alert-preview" id="dashboardAlertPreview">
+              <span class="alert-severity red"></span>
+              <div>
+                <strong>Fall detected</strong>
+                <span>STICK_001 · 12:05 AM</span>
+              </div>
+              <button class="small-button" data-page-link="alerts">Review</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MONITORING</p>
+            <h3>Recent activity</h3>
+          </div>
+          <button class="text-button" data-page-link="activity">View all →</button>
+        </div>
+
+        <div class="card activity-card">
+          <div class="activity-list" id="dashboardActivity"></div>
+        </div>
+      </section>
+
+      <!-- PERSON -->
+      <section class="page" id="page-person">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">PERSON / STICK PROFILE</p>
+            <h2>Rahul Sharma</h2>
+            <p class="muted">Details associated with the monitored SafeStick.</p>
+          </div>
+          <span class="status-chip success">Online</span>
+        </div>
+
+        <div class="two-column">
+          <article class="card profile-card">
+            <div class="profile-top">
+              <div class="avatar xlarge">RS</div>
+              <div>
+                <span class="card-label">MONITORED PERSON</span>
+                <h3>Rahul Sharma</h3>
+                <span class="muted">SafeStick user</span>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div><span>Stick ID</span><strong>STICK_001</strong></div>
+              <div><span>Connection</span><strong class="green-text">Online</strong></div>
+              <div><span>Battery</span><strong id="profileBattery">76%</strong></div>
+              <div><span>Last connection</span><strong id="profileConnection">12:04 AM</strong></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <span class="card-label">DEVICE</span>
+                <h3>SafeStick hardware</h3>
+              </div>
+              <span class="status-chip success">Connected</span>
+            </div>
+            <div class="device-list">
+              <div><span>Device</span><strong>ESP32 SafeStick</strong></div>
+              <div><span>Device ID</span><strong>STICK_001</strong></div>
+              <div><span>Connection</span><strong>Live</strong></div>
+              <div><span>GPS</span><strong>Available</strong></div>
+              <div><span>Fall detection</span><strong>Enabled</strong></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- LOCATION -->
+      <section class="page" id="page-location">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">GPS MONITORING</p>
+            <h2>Live Location</h2>
+            <p class="muted">Latest position reported by STICK_001.</p>
+          </div>
+          <button class="secondary-button" id="refreshLocation">↻ Refresh location</button>
+        </div>
+
+        <div class="map-layout">
+          <article class="card map-card">
+            <div id="map"></div>
+          </article>
+
+          <aside class="location-info">
+            <article class="card">
+              <span class="card-label">CURRENT POSITION</span>
+              <h3>Rahul Sharma</h3>
+              <div class="location-coordinate">
+                <span class="map-pin large-pin">●</span>
+                <div>
+                  <strong id="fullCoordinates">28.6139° N, 77.2090° E</strong>
+                  <span>Delhi, India</span>
+                </div>
+              </div>
+              <div class="detail-list">
+                <div><span>Stick</span><strong>STICK_001</strong></div>
+                <div><span>Last updated</span><strong id="fullLocationTime">just now</strong></div>
+                <div><span>GPS status</span><strong class="green-text">Active</strong></div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="card-label">LOCATION HISTORY</span>
+              <h3>Recent positions</h3>
+              <div class="history-list" id="locationHistory"></div>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ALERTS -->
+      <section class="page" id="page-alerts">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">SAFETY MONITORING</p>
+            <h2>Alerts</h2>
+            <p class="muted">Fall and low-battery notifications from the SafeStick.</p>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <button class="filter-button active" data-filter="all">All</button>
+          <button class="filter-button" data-filter="unresolved">Unresolved</button>
+          <button class="filter-button" data-filter="fall">Fall</button>
+          <button class="filter-button" data-filter="battery">Battery</button>
+        </div>
+
+        <div class="alert-list" id="alertList"></div>
+      </section>
+
+      <!-- BATTERY -->
+      <section class="page" id="page-battery">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">DEVICE POWER</p>
+            <h2>Battery</h2>
+            <p class="muted">Monitor the SafeStick battery level and warning threshold.</p>
+          </div>
+        </div>
+
+        <div class="battery-layout">
+          <article class="card battery-detail-card">
+            <div class="battery-big-value" id="batteryBigValue">76%</div>
+            <div class="battery-meter large-meter">
+              <div class="battery-fill" id="batteryBigFill" style="width: 76%"></div>
+            </div>
+            <span class="status-chip success" id="batteryBigStatus">Good</span>
+            <p class="muted">Current battery level</p>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <span class="card-label">WARNING THRESHOLD</span>
+                <h3>Low battery alert</h3>
+              </div>
+            </div>
+            <label class="field-label" for="batteryThreshold">Alert when battery reaches</label>
+            <div class="range-row">
+              <input type="range" min="5" max="50" value="20" id="batteryThreshold" />
+              <strong id="thresholdValue">20%</strong>
+            </div>
+            <p class="muted small">The frontend stores this setting locally. Your ESP32/backend can use the same threshold when you connect the real hardware.</p>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">POWER HISTORY</p>
+              <h3>Recent battery updates</h3>
+            </div>
+          </div>
+          <div class="activity-list" id="batteryHistory"></div>
+        </article>
+      </section>
+
+      <!-- ACTIVITY -->
+      <section class="page" id="page-activity">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">EVENT LOG</p>
+            <h2>Activity History</h2>
+            <p class="muted">Recent events reported by STICK_001.</p>
+          </div>
+          <button class="secondary-button" id="clearActivity">Clear demo activity</button>
+        </div>
+
+        <article class="card">
+          <div class="activity-list large-list" id="activityPageList"></div>
+        </article>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="page" id="page-settings">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">ACCOUNT & DEVICE</p>
+            <h2>Settings</h2>
+            <p class="muted">Keep configuration simple for the caretaker.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <article class="card">
+            <span class="card-label">CARETAKER PROFILE</span>
+            <h3>Bhavika</h3>
+            <div class="setting-row">
+              <span>Role</span><strong>Caretaker</strong>
+            </div>
+            <div class="setting-row">
+              <span>Notifications</span>
+              <label class="switch">
+                <input type="checkbox" id="notificationsToggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="card-label">STICK SETTINGS</span>
+            <h3>STICK_001</h3>
+            <div class="setting-row">
+              <span>Fall detection</span><strong class="green-text">Enabled</strong>
+            </div>
+            <div class="setting-row">
+              <span>GPS updates</span><strong>Live</strong>
+            </div>
+            <div class="setting-row">
+              <span>Battery threshold</span><strong id="settingsThreshold">20%</strong>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="card-label">DEMO CONTROLS</span>
+            <h3>Test hardware events</h3>
+            <p class="muted small">These buttons simulate frontend events. Replace them with API/WebSocket events when the ESP32 backend is connected.</p>
+            <div class="demo-actions">
+              <button class="danger-button" id="simulateFall">Simulate fall</button>
+              <button class="warning-button" id="simulateLowBattery">Simulate low battery</button>
+              <button class="secondary-button" id="simulateReconnect">Reconnect stick</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>SafeStick • Caretaker Monitoring</span>
+        <span>Frontend MVP</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="script.js"></script>
+</body>
+</html>
